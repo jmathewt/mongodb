@@ -1,0 +1,27 @@
+Aggregate commands
+
+1) db.messages.aggregate(
+[
+    {
+        "$project":{
+            "headers.From": 1, "headers.To": 1, "_id": 0, "to":{"$setUnion": ["$headers.To"]} // using $setUnion to remove duplicates from the array
+        }
+    },
+    {
+        "$unwind":"$to" // break every entry in an array into separate document
+    },
+    {
+        "$group":{
+            "_id":{
+                "from": "$headers.From", // grouping to avoid duplicates
+                "to": "$to"
+            },
+            "count":{"$sum": 1} // count of ones with the same grouping
+        }
+    },
+    {
+        "$sort":{
+            "count": -1 // sort in descending order
+         }
+    }
+]).pretty()
